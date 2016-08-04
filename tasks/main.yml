@@ -23,6 +23,9 @@
 - name: Symlink Rails logs to common area
   file: src=/srv/{{ app_name }}/shared/log dest=/var/log/rails state=link force=yes
 
+- name: Create directory for app
+  file: state=directory path=/srv/{{ app_name }} owner={{ deployer }} group={{ deployer }}
+
 - name: Fetch SSH host keys for {{ deployment_host }}
   command: ssh-keyscan {{ deployment_host }}
   register: known_hosts_keys

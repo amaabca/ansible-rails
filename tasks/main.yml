@@ -1,2 +1,32 @@
 ---
-# tasks file for ansible-rails
+- name: Install Nokogiri requirements
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - libxslt1-dev
+    - libxml2-dev
+
+- name: Install Ruby FFI
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - libffi6
+    - libffi-dev
+
+- name: Check bundler version
+  shell: bundler --version
+  register: version_of_bundler_installed
+  ignore_errors: yes
+
+- name: Install Bundler as a system gem
+  command: gem install bundler
+  when: version_of_bundler_installed.stderr != ""
+
+- name: Symlink Rails logs to common area
+  file: src=/srv/{{ app_name }}/shared/log dest=/var/log/rails state=link force=yes
+
+- name: Fetch SSH host keys for {{ deployment_host }}
+  command: ssh-keyscan {{ deployment_host }}
+  register: known_hosts_keys
+
+- name: Add host key to known_hosts file
+  lineinfile: create=yes dest=/etc/ssh/ssh_known_hosts line='{{ known_hosts_keys.stdout }}' state=present owner=root group=root mode=0644
+  when: known_hosts_keys

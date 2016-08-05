@@ -1,2 +1,2 @@
 ---
-# defaults file for ansible-rails
+deployment_host: github.com

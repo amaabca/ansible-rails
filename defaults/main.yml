@@ -1,2 +1,3 @@
 ---
 deployment_host: github.com
+bundler_version: '~> 1.17.3'

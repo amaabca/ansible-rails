@@ -1,35 +1,52 @@
 ---
 - name: Install Nokogiri requirements
-  apt: pkg={{ item }} state=latest
-  with_items:
-    - libxslt1-dev
-    - libxml2-dev
+  apt:
+    pkg:
+      - libxslt1-dev
+      - libxml2-dev
+    state: latest
 
 - name: Install Ruby FFI
-  apt: pkg={{ item }} state=latest
-  with_items:
-    - libffi6
-    - libffi-dev
-
-- name: Check bundler version
-  shell: bundler --version
-  register: version_of_bundler_installed
-  ignore_errors: yes
+  apt:
+    pkg:
+      - libffi6
+      - libffi-dev
+    state: latest
 
 - name: Install Bundler as a system gem
-  command: gem install bundler
-  when: version_of_bundler_installed.stderr != ""
-
-- name: Symlink Rails logs to common area
-  file: src=/srv/{{ app_name }}/shared/log dest=/var/log/rails state=link force=yes
+  gem:
+    name: bundler
+    user_install: no
+    version: '{{ bundler_version }}'
+    state: present
 
 - name: Create directory for app
-  file: state=directory path=/srv/{{ app_name }} owner={{ deployer }} group={{ deployer }}
+  file:
+    state: directory
+    path: '/srv/{{ app_name }}'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: Create Shared Directory to Bootstrap Capistrano
+  file:
+    state: directory
+    path: '/srv/{{ app_name }}/shared'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: Symlink Rails logs to common area
+  file:
+    src: '/srv/{{ app_name }}/shared/log'
+    dest: '/var/log/rails'
+    state: link
+    force: yes
 
 - name: Fetch SSH host keys for {{ deployment_host }}
-  command: ssh-keyscan {{ deployment_host }}
-  register: known_hosts_keys
+  command: ssh-keyscan -t rsa {{ deployment_host }}
+  register: deployment_host_key
 
-- name: Add host key to known_hosts file
-  lineinfile: create=yes dest=/etc/ssh/ssh_known_hosts line='{{ known_hosts_keys.stdout }}' state=present owner=root group=root mode=0644
-  when: known_hosts_keys
+- name: Install SSH host keys for {{ deployment_host }}
+  known_hosts:
+    name: '{{ deployment_host }}'
+    state: present
+    key: '{{ deployment_host_key.stdout }}'

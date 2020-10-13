@@ -4,13 +4,7 @@
     pkg:
       - libxslt1-dev
       - libxml2-dev
-    state: latest
-
-- name: Install Ruby FFI
-  apt:
-    pkg:
-      - libffi6
-      - libffi-dev
+      - zlib1g-dev
     state: latest
 
 - name: Install Bundler as a system gem
@@ -40,6 +34,21 @@
     dest: '/var/log/rails'
     state: link
     force: yes
+
+- name: Create Bundler Directory
+  file:
+    path: '/home/{{ deployer }}/.bundle'
+    state: directory
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: Configure Bundler
+  template:
+    src: templates/bundler.j2
+    dest: '/home/{{ deployer }}/.bundle/config'
+    mode: '0644'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
 
 - name: Fetch SSH host keys for {{ deployment_host }}
   command: ssh-keyscan -t rsa {{ deployment_host }}

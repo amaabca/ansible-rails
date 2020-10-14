@@ -7,6 +7,23 @@
       - zlib1g-dev
     state: latest
 
+- name: Add APT Public Key for Yarn
+  apt_key:
+    url: https://dl.yarnpkg.com/debian/pubkey.gpg
+    state: present
+
+- name: Add APT Repository for Yarn
+  apt_repository:
+    repo: deb https://dl.yarnpkg.com/debian/ stable main
+    state: present
+
+- name: Install Yarn and NodeJS
+  apt:
+    update_cache: yes
+    name: yarn
+    install_recommends: yes # nodejs
+    state: latest
+
 - name: Install Bundler as a system gem
   gem:
     name: bundler
@@ -25,6 +42,34 @@
   file:
     state: directory
     path: '/srv/{{ app_name }}/shared'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: App Directory | tmp
+  file:
+    state: directory
+    path: '/srv/{{ app_name }}/shared/tmp'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: App Directory | tmp/cache
+  file:
+    state: directory
+    path: '/srv/{{ app_name }}/shared/tmp/cache'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: App Directory | tmp/sockets
+  file:
+    state: directory
+    path: '/srv/{{ app_name }}/shared/tmp/sockets'
+    owner: '{{ deployer }}'
+    group: '{{ deployer }}'
+
+- name: App Directory | tmp/pids
+  file:
+    state: directory
+    path: '/srv/{{ app_name }}/shared/tmp/pids'
     owner: '{{ deployer }}'
     group: '{{ deployer }}'
 
